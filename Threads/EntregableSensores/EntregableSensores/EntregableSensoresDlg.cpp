@@ -54,25 +54,21 @@ CEntregableSensoresDlg::CEntregableSensoresDlg(CWnd* pParent /*=NULL*/)
 
 void CEntregableSensoresDlg::DoDataExchange(CDataExchange* pDX)
 {
-  CDialogEx::DoDataExchange(pDX);
-  DDX_Control(pDX, IDC_LIST1, m_list);
-  //  DDX_Control(pDX, bnNodo2, m_button2);
-  //  DDX_Control(pDX, bnNodo1, m_button1);
-  //  DDX_Control(pDX, bnNodo3, m_button3);
+	CDialogEx::DoDataExchange(pDX);
+	DDX_Control(pDX, IDC_LIST1, m_list);
+	DDX_Control(pDX, cbNodes2, m_comboNodes2);
+	DDX_Control(pDX, cbNodes, m_comboNodes);
 }
 
 BEGIN_MESSAGE_MAP(CEntregableSensoresDlg, CDialogEx)
 	ON_WM_SYSCOMMAND()
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
-  ON_BN_CLICKED(bnNodo1, &CEntregableSensoresDlg::OnBnClickedbnnodo1)
-  ON_BN_CLICKED(bnNodo2, &CEntregableSensoresDlg::OnBnClickedbnnodo2)
-  ON_BN_CLICKED(bnNodo3, &CEntregableSensoresDlg::OnBnClickedbnnodo3)
   ON_MESSAGE( WM_MSG_HILO, funcion)
+	ON_CBN_SELCHANGE(cbNodes, &CEntregableSensoresDlg::OnSelchangeCbnodes)
+	ON_BN_CLICKED(bnSend, &CEntregableSensoresDlg::OnBnClickedbnsend)
 END_MESSAGE_MAP()
-UINT Nodo1(LPVOID p);
-UINT Nodo2(LPVOID p);
-UINT Nodo3(LPVOID p);
+UINT NodoGeneral(LPVOID p);
 
 // Controladores de mensaje de CEntregableSensoresDlg
 
@@ -107,10 +103,23 @@ BOOL CEntregableSensoresDlg::OnInitDialog()
 
 	// TODO: agregar aquí inicialización adicional
   m_enviado = false;
+	m_active = true;
+	m_id = 1;
+	m_comboNodes.SetCurSel(0);
+	CString selection;
+	m_comboNodes.GetLBText(0, selection);
+	char selection2[10];
+	strcpy(selection2, (LPCTSTR)selection );
+	for(int ii = 0; ii < selection2[0]-48; ii++){
+		CString cs;
+		cs.Format("%d", ii + 1);
+		m_comboNodes2.AddString(cs);
+	}
+	m_comboNodes2.SetCurSel(0);
   m_recibido = 0;
-  m_threads.push_back(AfxBeginThread(Nodo1, this));
-  m_threads.push_back(AfxBeginThread(Nodo2, this));
-  m_threads.push_back(AfxBeginThread(Nodo3, this));
+	for(int ii = 0; ii < selection2[0]-48; ii++){
+		m_threads.push_back(AfxBeginThread(NodoGeneral, this));
+	}
 	return TRUE;  // Devuelve TRUE  a menos que establezca el foco en un control
 }
 
@@ -163,74 +172,29 @@ HCURSOR CEntregableSensoresDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
-UINT Nodo1(LPVOID p)
+UINT NodoGeneral(LPVOID p)
 {
   CEntregableSensoresDlg *pDlg = (CEntregableSensoresDlg*)p;
-  while(true){
+	int internalID = pDlg->m_id;
+	pDlg->m_id++;
+  while(pDlg->m_active){
     if(pDlg->m_enviado != 0){
-      CString cs;
-      cs.Format("Nodo 1 Recibido de %d!", pDlg->m_enviado);
-      pDlg->m_list.AddString(cs);
+      CString cs1, cs2;
+			cs1.Format("Nodo %d", internalID);
+      cs2.Format(cs1 + " Recibido de %d!", pDlg->m_enviado);
+      pDlg->m_list.AddString(cs2);
       pDlg->PostMessage(WM_MSG_HILO,1);
       while(pDlg->m_enviado != 0);
     }
   }
-}
-UINT Nodo2(LPVOID p)
-{
-  CEntregableSensoresDlg *pDlg = (CEntregableSensoresDlg*)p;
-  while(true){
-    if(pDlg->m_enviado != 0){
-      CString cs;
-      cs.Format("Nodo 2 Recibido de %d!", pDlg->m_enviado);
-      pDlg->m_list.AddString(cs);
-      pDlg->PostMessage(WM_MSG_HILO,1);
-      while(pDlg->m_enviado != 0);
-    }
-  }
-}
-UINT Nodo3(LPVOID p)
-{
-  CEntregableSensoresDlg *pDlg = (CEntregableSensoresDlg*)p;
-  while(true){
-    if(pDlg->m_enviado != 0){
-      CString cs;
-      cs.Format("Nodo 3 Recibido de %d!", pDlg->m_enviado);
-      pDlg->m_list.AddString(cs);
-      pDlg->PostMessage(WM_MSG_HILO,1);
-      while(pDlg->m_enviado != 0);
-    }
-  }
-}
-
-void CEntregableSensoresDlg::OnBnClickedbnnodo1()
-{
-  m_threads.at(0)->SuspendThread();
-  m_list.AddString("Nodo 1 Enviado..........................");
-  m_enviado = 1;
-}
-
-
-void CEntregableSensoresDlg::OnBnClickedbnnodo2()
-{
-  m_threads.at(1)->SuspendThread();
-  m_list.AddString("Nodo 2 Enviado..........................");
-  m_enviado = 2;
-}
-
-
-void CEntregableSensoresDlg::OnBnClickedbnnodo3()
-{
-  m_threads.at(2)->SuspendThread();
-  m_list.AddString("Nodo 3 Enviado..........................");
-  m_enviado = 3;
+	return 0;
 }
 
 LRESULT CEntregableSensoresDlg::funcion(WPARAM wParam, LPARAM lParam){
   if(wParam == 1){
     m_recibido++;
   }
-  if (m_recibido >= 2){
+  if (m_recibido >= m_threads.size() - 1){
     m_recibido = 0;
     m_enviado = 0;
     for(size_t ii = 0; ii < m_threads.size(); ii++){
@@ -239,4 +203,44 @@ LRESULT CEntregableSensoresDlg::funcion(WPARAM wParam, LPARAM lParam){
     m_list.AddString("");
   }
   return 0;
+}
+
+void CEntregableSensoresDlg::OnSelchangeCbnodes()
+{
+	m_active = false;
+	std::vector<CWinThread*> tmp;
+	m_threads = tmp;
+	m_id = 1;
+	CString selection;
+	m_comboNodes.GetLBText(m_comboNodes.GetCurSel(), selection);
+	char selection2[10];
+	strcpy(selection2, (LPCTSTR)selection );
+	m_active = true;
+	for(int ii = 0; ii < selection2[0]-48; ii++){
+		m_threads.push_back(AfxBeginThread(NodoGeneral, this));
+	}
+	int a = m_comboNodes2.GetCount();
+	for(int ii = m_comboNodes2.GetCount() - 1; ii >= 0; ii--){
+		m_comboNodes2.DeleteString(ii);
+	}
+	for(int ii = 0; ii < selection2[0] - 48; ii++){
+		CString cs;
+		cs.Format("%d", ii + 1);
+		m_comboNodes2.AddString(cs);
+	}
+	m_comboNodes2.SetCurSel(0);
+}
+
+
+void CEntregableSensoresDlg::OnBnClickedbnsend()
+{
+	CString selection;
+	m_comboNodes2.GetLBText(m_comboNodes2.GetCurSel(), selection);
+	char selection2[10];
+	strcpy(selection2, (LPCTSTR)selection );
+	m_threads.at(selection2[0]-49)->SuspendThread();
+	CString cs;
+	cs.Format("Nodo %d Enviando.............................", selection2[0] - 48);
+	m_list.AddString(cs);
+  m_enviado = selection2[0] - 48;
 }

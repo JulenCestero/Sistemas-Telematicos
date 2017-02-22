@@ -32,11 +32,14 @@ protected:
 	DECLARE_MESSAGE_MAP()
 public:
   CListBox m_list;
-  afx_msg void OnBnClickedbnnodo1();
-  afx_msg void OnBnClickedbnnodo2();
-  afx_msg void OnBnClickedbnnodo3();
   afx_msg LRESULT funcion(WPARAM wParam, LPARAM lParam);
   std::vector<CWinThread*> m_threads;
   int m_enviado;
+	bool m_active;
   size_t m_recibido;
+	int m_id;
+	afx_msg void OnSelchangeCbnodes();
+	CComboBox m_comboNodes2;
+	CComboBox m_comboNodes;
+	afx_msg void OnBnClickedbnsend();
 };
