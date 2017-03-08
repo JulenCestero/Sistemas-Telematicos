@@ -49,6 +49,11 @@ END_MESSAGE_MAP()
 
 CServidorDlg::CServidorDlg(CWnd* pParent /*=NULL*/)
 	: CDialogEx(CServidorDlg::IDD, pParent)
+	, m_textoDeposito2(0)
+	, m_textoDeposito1(0)
+	, m_ip(_T(""))
+	, m_port(0)
+	, m_msg(_T(""))
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -56,12 +61,22 @@ CServidorDlg::CServidorDlg(CWnd* pParent /*=NULL*/)
 void CServidorDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
+	//  DDX_Text(pDX, txbxDeposito1, m_textoDeposito1);
+	DDX_Text(pDX, txbxDeposito2, m_textoDeposito2);
+	DDX_Text(pDX, txbxDeposito1, m_textoDeposito1);
+	DDX_Text(pDX, IDC_EDIT3, m_ip);
+	DDX_Text(pDX, IDC_EDIT4, m_port);
+	DDX_Text(pDX, IDC_EDIT5, m_msg);
 }
 
 BEGIN_MESSAGE_MAP(CServidorDlg, CDialogEx)
 	ON_WM_SYSCOMMAND()
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
+	ON_WM_TIMER()
+	ON_BN_CLICKED(IDC_BUTTON1, &CServidorDlg::OnBnClickedButton1)
+	ON_BN_CLICKED(IDC_BUTTON2, &CServidorDlg::OnBnClickedButton2)
+	ON_BN_CLICKED(IDC_BUTTON3, &CServidorDlg::OnBnClickedButton3)
 END_MESSAGE_MAP()
 
 
@@ -97,7 +112,21 @@ BOOL CServidorDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// Establecer icono pequeño
 
 	// TODO: agregar aquí inicialización adicional
-
+	misoc = new CMySocket(this);
+	misoc->Create(502,SOCK_STREAM);
+	misoc->Listen();
+	m_msg = "Esperando conexión en 502";
+	m_dep1.SubclassDlgItem(imDeposito1, this);
+  m_dep2.SubclassDlgItem(imDeposito2, this);
+	m_dep1.m_nivel = 10;
+	m_dep2.m_nivel = 45;
+	m_textoDeposito1 = m_dep1.m_nivel;
+	m_textoDeposito2 = m_dep2.m_nivel;
+	m_ip = "127.0.0.1";
+	m_port = 503;
+	UpdateData(0);
+	m_dep1.Invalidate(true);
+	m_dep2.Invalidate(true);
 	return TRUE;  // Devuelve TRUE  a menos que establezca el foco en un control
 }
 
@@ -150,3 +179,45 @@ HCURSOR CServidorDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
+void CServidorDlg::OnTimer(UINT_PTR nIDEvent)
+{
+	static int num=0;
+	char buf[50];
+	UpdateData(true);
+	CSocket cliente;
+	if ( !cliente.Create(0,SOCK_DGRAM)){
+		MessageBox("Error al crea cliente..");
+		return;
+	}
+	CString cs;
+	cs.Format("UDP %d", num);
+	int sl=cliente.SendTo(cs,cs.GetLength(),m_port,m_ip);
+	int rl=cliente.Receive(buf,30);
+	if (rl>0){
+		buf[rl]=0;
+		m_msg.Format("Num:%d MSG:%s",num++,buf);
+		m_dep1.m_nivel = atoi(buf);
+		m_textoDeposito1 = atoi(buf);
+		m_dep1.Invalidate(true);
+	}
+	cliente.Close();
+	UpdateData(false);
+}
+
+
+void CServidorDlg::OnBnClickedButton1()
+{
+	SetTimer(1, 5000, NULL);
+}
+
+
+void CServidorDlg::OnBnClickedButton2()
+{
+	KillTimer(1);
+}
+
+
+void CServidorDlg::OnBnClickedButton3()
+{
+	CDialog::OnOK();
+}

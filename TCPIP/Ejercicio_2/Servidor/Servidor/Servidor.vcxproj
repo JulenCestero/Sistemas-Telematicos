@@ -99,6 +99,8 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Depositos.h" />
+    <ClInclude Include="MySocket.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="Servidor.h" />
     <ClInclude Include="ServidorDlg.h" />
@@ -106,6 +108,8 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Depositos.cpp" />
+    <ClCompile Include="MySocket.cpp" />
     <ClCompile Include="Servidor.cpp" />
     <ClCompile Include="ServidorDlg.cpp" />
     <ClCompile Include="stdafx.cpp">
@@ -125,4 +129,9 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties RESOURCE_FILE="Servidor.rc" />
+    </VisualStudio>
+  </ProjectExtensions>
 </Project>

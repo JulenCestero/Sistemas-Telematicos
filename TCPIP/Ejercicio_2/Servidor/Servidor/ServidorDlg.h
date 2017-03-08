@@ -3,7 +3,8 @@
 //
 
 #pragma once
-
+#include "Depositos.h"
+#include "MySocket.h"
 
 // Cuadro de diálogo de CServidorDlg
 class CServidorDlg : public CDialogEx
@@ -29,4 +30,18 @@ protected:
 	afx_msg void OnPaint();
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
+public:
+//	CString m_textoDeposito1;
+	int m_textoDeposito2;
+	int m_textoDeposito1;
+	CString m_ip;
+	int m_port;
+	CString m_msg;
+	CDepositos m_dep1;
+	CDepositos m_dep2;
+	CMySocket *misoc;
+	afx_msg void OnTimer(UINT_PTR nIDEvent);
+	afx_msg void OnBnClickedButton1();
+	afx_msg void OnBnClickedButton2();
+	afx_msg void OnBnClickedButton3();
 };
